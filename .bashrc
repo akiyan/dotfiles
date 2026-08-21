@@ -49,3 +49,15 @@ if type __git_ps1 >/dev/null 2>&1; then
 else
   PS1='\[\e[31m\]# \[\e[36m\]\u \[\e[37m\]@ \[\e[32m\]\h \[\e[37m\]in \[\e[33m\]\w\[\e[34m\] [\t]\[\e[0m\]\n\$ '
 fi
+
+_terminal_cleanup() {
+  # SSH切断時に残ることがあるxtermマウストラッキングを明示的に解除する。
+  printf '\033[?9l\033[?1000l\033[?1001l\033[?1002l\033[?1003l\033[?1005l\033[?1006l\033[?1015l\033[?1016l'
+}
+
+ssh() {
+  command ssh "$@"
+  local ret=$?
+  _terminal_cleanup
+  return "$ret"
+}
