@@ -117,6 +117,45 @@ install_binary() {
   mv "$staged_binary" "$local_bin_dir/$binary_name"
 }
 
+install_homebrew() {
+  brew_path=$(command -v brew 2>/dev/null || true)
+  if [ -z "$brew_path" ]; then
+    for candidate in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+      if [ -x "$candidate" ]; then
+        brew_path=$candidate
+        break
+      fi
+    done
+  fi
+
+  if [ -z "$brew_path" ]; then
+    printf 'Homebrewをインストールしています...\n'
+    homebrew_installer="$temporary_dir/homebrew-install.sh"
+    download https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh \
+      "$homebrew_installer"
+    if [ "$(id -u)" -ne 0 ]; then
+      command -v sudo >/dev/null 2>&1 ||
+        die 'Homebrewのインストールにはsudoが必要です'
+      printf 'Homebrewのインストール権限を確認します...\n'
+      sudo -v
+    fi
+    NONINTERACTIVE=1 /bin/bash "$homebrew_installer"
+
+    case "$(uname -m)" in
+      arm64|aarch64) brew_path=/opt/homebrew/bin/brew ;;
+      x86_64) brew_path=/usr/local/bin/brew ;;
+    esac
+    [ -x "$brew_path" ] || die 'Homebrewをインストールできませんでした'
+  fi
+
+  eval "$("$brew_path" shellenv)"
+  brew_bin_dir=${brew_path%/*}
+  case ":$initial_path:" in
+    *":$brew_bin_dir:"*) ;;
+    *) initial_path="$brew_bin_dir:$initial_path" ;;
+  esac
+}
+
 run_as_root() {
   if [ "$(id -u)" -eq 0 ]; then
     "$@"
@@ -151,17 +190,16 @@ install_ripgrep() {
 
   case "$(uname -s)" in
     Darwin)
-      command -v brew >/dev/null 2>&1 ||
-        die 'macOS で ripgrep を導入するには Homebrew が必要です'
-      brew update
-      if brew list --formula ripgrep >/dev/null 2>&1; then
-        if brew outdated --quiet ripgrep | grep -q .; then
-          brew upgrade ripgrep
+      install_homebrew
+      "$brew_path" update
+      if "$brew_path" list --formula ripgrep >/dev/null 2>&1; then
+        if "$brew_path" outdated --quiet ripgrep | grep -q .; then
+          "$brew_path" upgrade ripgrep
         else
           printf 'ripgrep は最新です\n'
         fi
       else
-        brew install ripgrep
+        "$brew_path" install ripgrep
       fi
       ;;
     Linux)

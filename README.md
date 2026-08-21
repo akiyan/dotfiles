@@ -4,7 +4,7 @@ macOS、Ubuntu、Amazon Linux 2023 で共通利用する Bash 環境と開発用
 
 ## インストール
 
-`curl`、`git`、`tar` が必要。macOS で ripgrep を導入する場合は Homebrew も必要になる。
+`curl`、`git`、`tar` が必要。macOSでHomebrewが未導入の場合は、セットアップ中に公式インストーラーで導入する。必要に応じて `sudo` のパスワード入力が発生する。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/akiyan/dotfiles/main/install.sh | bash

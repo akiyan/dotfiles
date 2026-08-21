@@ -24,7 +24,14 @@ if [ -d "$dotfiles_dir/.git" ]; then
 
   git -C "$dotfiles_dir" fetch origin main
   git -C "$dotfiles_dir" checkout main
-  git -C "$dotfiles_dir" merge --ff-only origin/main
+  if git -C "$dotfiles_dir" merge-base --is-ancestor main origin/main; then
+    git -C "$dotfiles_dir" merge --ff-only origin/main
+  elif ! git -C "$dotfiles_dir" merge-base main origin/main >/dev/null 2>&1; then
+    # リポジトリ側で履歴を1コミット化した場合は管理cloneを同期する。
+    git -C "$dotfiles_dir" reset --hard origin/main
+  else
+    die "$dotfiles_dir のmainとorigin/mainが分岐しています"
+  fi
 elif [ -e "$dotfiles_dir" ] || [ -L "$dotfiles_dir" ]; then
   die "$dotfiles_dir は既に存在します"
 else
