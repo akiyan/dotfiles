@@ -190,12 +190,14 @@ install_ghostty_terminfo() {
     die 'infocmpを利用できません'
   command -v "$terminfo_tic" >/dev/null 2>&1 || die 'ticを利用できません'
 
-  if "$terminfo_infocmp" xterm-ghostty >/dev/null 2>&1; then
+  if TERMINFO="$terminfo_output_dir" \
+    "$terminfo_infocmp" xterm-ghostty >/dev/null 2>&1; then
     printf 'xterm-ghostty terminfoは導入済みです\n'
     return
   fi
 
-  if "$terminfo_infocmp" ghostty >/dev/null 2>&1; then
+  if env -u TERMINFO -u TERMINFO_DIRS \
+    "$terminfo_infocmp" ghostty >/dev/null 2>&1; then
     ghostty_terminfo_base=ghostty
   else
     ghostty_terminfo_base=xterm-256color
@@ -203,11 +205,20 @@ install_ghostty_terminfo() {
 
   printf '%sを基にxterm-ghostty terminfoを導入しています...\n' \
     "$ghostty_terminfo_base"
-  mkdir -p "$HOME/.terminfo"
-  "$terminfo_infocmp" -x "$ghostty_terminfo_base" |
-    sed "s/^${ghostty_terminfo_base}|/xterm-ghostty|${ghostty_terminfo_base}|/" |
-    "$terminfo_tic" -x -o "$HOME/.terminfo" -
-  TERMINFO="$HOME/.terminfo" "$terminfo_infocmp" xterm-ghostty \
+  ghostty_terminfo_source="$temporary_dir/xterm-ghostty.terminfo"
+  env -u TERMINFO -u TERMINFO_DIRS \
+    "$terminfo_infocmp" -x "$ghostty_terminfo_base" |
+    sed "s/^${ghostty_terminfo_base}|/xterm-ghostty|${ghostty_terminfo_base}|/" \
+      > "$ghostty_terminfo_source"
+  if [ "$terminfo_system_wide" -eq 1 ]; then
+    run_as_root "$terminfo_tic" -x -o "$terminfo_output_dir" \
+      "$ghostty_terminfo_source"
+  else
+    mkdir -p "$terminfo_output_dir"
+    "$terminfo_tic" -x -o "$terminfo_output_dir" \
+      "$ghostty_terminfo_source"
+  fi
+  TERMINFO="$terminfo_output_dir" "$terminfo_infocmp" xterm-ghostty \
     >/dev/null 2>&1 || die 'xterm-ghostty terminfoを導入できませんでした'
 }
 
@@ -232,6 +243,8 @@ install_system_packages() {
       ncurses_prefix=$("$brew_path" --prefix ncurses)
       terminfo_infocmp="$ncurses_prefix/bin/infocmp"
       terminfo_tic="$ncurses_prefix/bin/tic"
+      terminfo_output_dir="$HOME/.terminfo"
+      terminfo_system_wide=0
       ;;
     Linux)
       [ -r /etc/os-release ] || die '/etc/os-release を読み込めません'
@@ -257,6 +270,8 @@ install_system_packages() {
       esac
       terminfo_infocmp=$(command -v infocmp)
       terminfo_tic=$(command -v tic)
+      terminfo_output_dir=/usr/share/terminfo
+      terminfo_system_wide=1
       ;;
   esac
 

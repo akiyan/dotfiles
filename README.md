@@ -35,7 +35,7 @@ exec bash -l
 | --- | --- | --- |
 | `rg` | 高速なファイル・テキスト検索 | macOSはHomebrew、Ubuntuはapt、Amazon Linux 2023はdnf/SPAL（AL2023.9以降） |
 | `unzip` | ZIPアーカイブの展開 | Homebrew、apt、またはdnf |
-| `xterm-ghostty` | GhosttyからSSH接続した環境のterminfo | ncursesのツールで `~/.terminfo` へ導入 |
+| `xterm-ghostty` | GhosttyからSSH接続した環境のterminfo | Linuxはシステム領域、macOSは `~/.terminfo` へ導入 |
 | `gh` | GitHub CLI | GitHub Releasesから `~/.local/bin` へ導入 |
 | `aws` | AWS CLI v2 | AWS公式インストーラー |
 | `herdr` | Herdr CLI | Herdr公式インストーラー |
@@ -48,7 +48,7 @@ exec bash -l
 
 - Gitブランチ名と作業ツリーの状態を含むプロンプト表示
 - Bashのコマンド補完
-- GhosttyからSSH接続したホストでの正しい画面表示とキー入力
+- GhosttyからSSH接続したホストや `sudo` 実行時の正しい画面表示とキー入力
 - シェル内10万件・履歴ファイル20万件のコマンド履歴と日時表示
 - 複数行コマンドを保った履歴保存
 - `~/.local/bin` に導入したCLIの実行
