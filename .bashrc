@@ -6,6 +6,12 @@ case $- in
   *) return ;;
 esac
 
+# terminfoの導入前や失敗時も対話操作を壊さない。
+if [ "${TERM-}" = xterm-ghostty ] &&
+  ! infocmp xterm-ghostty >/dev/null 2>&1; then
+  export TERM=xterm-256color
+fi
+
 alias yolo='codex --dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust'
 
 # 履歴

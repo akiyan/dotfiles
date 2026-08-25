@@ -185,22 +185,53 @@ case "$(uname -s):$(uname -m)" in
   *) die "未対応の環境です: $(uname -s) $(uname -m)" ;;
 esac
 
-install_ripgrep() {
-  printf 'システムのパッケージマネージャーで ripgrep の最新版を確認しています...\n'
+install_ghostty_terminfo() {
+  command -v "$terminfo_infocmp" >/dev/null 2>&1 ||
+    die 'infocmpを利用できません'
+  command -v "$terminfo_tic" >/dev/null 2>&1 || die 'ticを利用できません'
+
+  if "$terminfo_infocmp" xterm-ghostty >/dev/null 2>&1; then
+    printf 'xterm-ghostty terminfoは導入済みです\n'
+    return
+  fi
+
+  if "$terminfo_infocmp" ghostty >/dev/null 2>&1; then
+    ghostty_terminfo_base=ghostty
+  else
+    ghostty_terminfo_base=xterm-256color
+  fi
+
+  printf '%sを基にxterm-ghostty terminfoを導入しています...\n' \
+    "$ghostty_terminfo_base"
+  mkdir -p "$HOME/.terminfo"
+  "$terminfo_infocmp" -x "$ghostty_terminfo_base" |
+    sed "s/^${ghostty_terminfo_base}|/xterm-ghostty|${ghostty_terminfo_base}|/" |
+    "$terminfo_tic" -x -o "$HOME/.terminfo" -
+  TERMINFO="$HOME/.terminfo" "$terminfo_infocmp" xterm-ghostty \
+    >/dev/null 2>&1 || die 'xterm-ghostty terminfoを導入できませんでした'
+}
+
+install_system_packages() {
+  printf 'システムのパッケージマネージャーで基本ツールを確認しています...\n'
 
   case "$(uname -s)" in
     Darwin)
       install_homebrew
       "$brew_path" update
-      if "$brew_path" list --formula ripgrep >/dev/null 2>&1; then
-        if "$brew_path" outdated --quiet ripgrep | grep -q .; then
-          "$brew_path" upgrade ripgrep
+      for formula in ripgrep unzip ncurses; do
+        if "$brew_path" list --formula "$formula" >/dev/null 2>&1; then
+          if "$brew_path" outdated --quiet "$formula" | grep -q .; then
+            "$brew_path" upgrade "$formula"
+          else
+            printf '%sは最新です\n' "$formula"
+          fi
         else
-          printf 'ripgrep は最新です\n'
+          "$brew_path" install "$formula"
         fi
-      else
-        "$brew_path" install ripgrep
-      fi
+      done
+      ncurses_prefix=$("$brew_path" --prefix ncurses)
+      terminfo_infocmp="$ncurses_prefix/bin/infocmp"
+      terminfo_tic="$ncurses_prefix/bin/tic"
       ;;
     Linux)
       [ -r /etc/os-release ] || die '/etc/os-release を読み込めません'
@@ -209,7 +240,7 @@ install_ripgrep() {
       case "${ID:-}" in
         ubuntu)
           run_as_root apt-get update
-          run_as_root apt-get install -y ripgrep
+          run_as_root apt-get install -y ripgrep unzip ncurses-bin ncurses-term
           ;;
         amzn)
           [ "${VERSION_ID:-}" = '2023' ] ||
@@ -220,12 +251,16 @@ install_ripgrep() {
               die 'SPAL を利用するには Amazon Linux 2023.9 以降が必要です'
             fi
           fi
-          run_as_root dnf install -y ripgrep
+          run_as_root dnf install -y ripgrep unzip ncurses ncurses-term
           ;;
         *) die "未対応の Linux ディストリビューションです: ${ID:-不明}" ;;
       esac
+      terminfo_infocmp=$(command -v infocmp)
+      terminfo_tic=$(command -v tic)
       ;;
   esac
+
+  install_ghostty_terminfo
 
   # 以前の setup.sh が導入したものは、システム版を隠すため削除する。
   if [ -f "$local_bin_dir/rg" ]; then
@@ -299,7 +334,7 @@ run_official_installers() {
   fi
 }
 
-install_ripgrep
+install_system_packages
 install_gh
 run_official_installers
 
