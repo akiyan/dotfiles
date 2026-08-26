@@ -71,10 +71,3 @@ ssh() {
   _terminal_cleanup
   return "$ret"
 }
-
-herdr() {
-  command herdr "$@"
-  local ret=$?
-  _terminal_cleanup
-  return "$ret"
-}
