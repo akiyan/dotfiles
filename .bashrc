@@ -57,12 +57,23 @@ else
 fi
 
 _terminal_cleanup() {
-  # SSH切断時に残ることがあるxtermマウストラッキングを明示的に解除する。
+  # 強制切断時に残ることがある端末の入力モードを明示的に解除する。
+  [ ! -t 0 ] || stty sane 2>/dev/null || true
+  # xtermマウストラッキングを解除する。
   printf '\033[?9l\033[?1000l\033[?1001l\033[?1002l\033[?1003l\033[?1005l\033[?1006l\033[?1015l\033[?1016l'
+  # Kitty keyboard protocolを無効化し、残っているモードスタックを空にする。
+  printf '\033[=0u\033[<8u'
 }
 
 ssh() {
   command ssh "$@"
+  local ret=$?
+  _terminal_cleanup
+  return "$ret"
+}
+
+herdr() {
+  command herdr "$@"
   local ret=$?
   _terminal_cleanup
   return "$ret"
