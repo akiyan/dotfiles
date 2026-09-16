@@ -317,6 +317,19 @@ install_gh() {
   printf 'gh %s をインストールしました\n' "$gh_version"
 }
 
+install_pnpm() {
+  if command -v pnpm >/dev/null 2>&1; then
+    printf 'pnpm %s は導入済みです\n' "$(pnpm --version)"
+    return
+  fi
+
+  command -v npm >/dev/null 2>&1 || die 'pnpm のインストールには npm が必要です'
+
+  printf 'pnpm をインストールしています...\n'
+  NPM_CONFIG_PREFIX="$HOME/.local" npm install --global pnpm
+  printf 'pnpm %s をインストールしました\n' "$(pnpm --version)"
+}
+
 run_official_installers() {
   aws_installer="$temporary_dir/aws-cli-install.sh"
   herdr_installer="$temporary_dir/herdr-install.sh"
@@ -351,6 +364,7 @@ run_official_installers() {
 
 install_system_packages
 install_gh
+install_pnpm
 run_official_installers
 
 if ((BASH_VERSINFO[0] > 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 2))); then
