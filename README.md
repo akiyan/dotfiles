@@ -66,3 +66,25 @@ alias yolo='codex --dangerously-bypass-approvals-and-sandbox --dangerously-bypas
 インストールコマンドは何度でも実行できる。再実行すると `~/.dotfiles` をmainブランチの最新版へfast-forwardし、管理対象のCLIを最新版へ更新して設定を再適用する。
 
 `~/.dotfiles` に未コミットの変更がある場合は、変更を保護するため更新せず停止する。
+
+## Telegramスキル（任意）
+
+CodexとpiからTelegram Bot APIでメッセージやファイルを送るユーザーレベルの
+`telegram` スキルは、基本セットアップとは別に導入する。
+
+```bash
+bash ~/.dotfiles/telegram.sh
+```
+
+スクリプトはbot tokenを非表示で対話入力し、Chat IDは直接入力するか、botへ
+メッセージを送った後に `getUpdates` から取得する。追加パッケージは不要で、
+`curl` とmacOS・Ubuntu・Amazon Linuxの標準的なシェルツールだけを使う。
+Webhookを設定済みのbotでは `getUpdates` を併用できないため、Chat IDを直接入力する。
+
+- 資格情報: `${XDG_CONFIG_HOME:-$HOME/.config}/telegram/bot.env`（権限 `0600`）
+- Codex: `~/.codex/skills/telegram`
+- pi: `~/.pi/agent/skills/telegram`
+
+両方のスキルパスは `~/.dotfiles/skills/telegram` へのシンボリックリンクなので、
+dotfilesの更新がそのまま反映される。`telegram.sh` は再実行でき、既存値はEnterで
+維持できる。`install.sh` からは実行されない。
