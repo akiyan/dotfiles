@@ -7,6 +7,7 @@ config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/telegram"
 config_file="$config_dir/bot.env"
 codex_skill="${CODEX_HOME:-$HOME/.codex}/skills/telegram"
 pi_skill="$HOME/.pi/agent/skills/telegram"
+claude_skill="$HOME/.claude/skills/telegram"
 
 die() {
   printf 'エラー: %s\n' "$*" >&2
@@ -157,4 +158,5 @@ printf '資格情報を %s に保存しました。\n' "$config_file"
 
 link_skill "$codex_skill"
 link_skill "$pi_skill"
+link_skill "$claude_skill"
 printf 'Telegramスキルのセットアップが完了しました。\n'

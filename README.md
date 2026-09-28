@@ -69,7 +69,7 @@ alias yolo='codex --dangerously-bypass-approvals-and-sandbox --dangerously-bypas
 
 ## Telegramスキル（任意）
 
-CodexとpiからTelegram Bot APIでメッセージやファイルを送るユーザーレベルの
+Codex、Claude Code、piからTelegram Bot APIでメッセージやファイルを送るユーザーレベルの
 `telegram` スキルは、基本セットアップとは別に導入する。
 
 ```bash
@@ -83,8 +83,9 @@ Webhookを設定済みのbotでは `getUpdates` を併用できないため、Ch
 
 - 資格情報: `${XDG_CONFIG_HOME:-$HOME/.config}/telegram/bot.env`（権限 `0600`）
 - Codex: `~/.codex/skills/telegram`
+- Claude Code: `~/.claude/skills/telegram`
 - pi: `~/.pi/agent/skills/telegram`
 
-両方のスキルパスは `~/.dotfiles/skills/telegram` へのシンボリックリンクなので、
+3つのスキルパスは `~/.dotfiles/skills/telegram` へのシンボリックリンクなので、
 dotfilesの更新がそのまま反映される。`telegram.sh` は再実行でき、既存値はEnterで
 維持できる。`install.sh` からは実行されない。
